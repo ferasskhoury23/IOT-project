@@ -17,6 +17,8 @@ ios/.symlinks/
 android/.gradle/
 android/app/build/
 android/key.properties
+app/android/app/google-services.json
+
 
 # Web-specific
 web/.dart_tool/
