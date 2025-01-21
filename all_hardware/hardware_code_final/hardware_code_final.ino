@@ -8,6 +8,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SH110X.h>
 #include <Adafruit_NeoPixel.h>
+#include "sounds.h"
 #ifdef __AVR__
  #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
 #endif
@@ -92,6 +93,9 @@ void setup() {
   ///////////pixel//////////////////
   setuppixel();
   /////////////////////////////
+  //for sound
+  setupI2S();
+
 
   ///////////buttons//////////////////
   pinMode(BUTTON1_PIN, INPUT_PULLUP); // Button 1 with internal pull-up
@@ -108,7 +112,7 @@ void setup() {
   // Initialize Firebase
   init_firebase();
 
-  // Initial fetch of the main password and lock state
+  // Initial fetch of the main parameters (lock state, main password, temporary passwords ..) 
   fetchMainPassword();
   fetchTempPasswords();
   fetchLockState();
@@ -120,15 +124,9 @@ void loop() {
   bool isConnected = (WiFi.status() == WL_CONNECTED);
   displayed_message = isConnected ? displayed_message : "NO WIFI";
 
-  //LED :
-  if (doorUnlocked) {
-    setColor(0, 150, 0);  // Green color
-  }
-  else {
-    setColor(150, 0, 0);  // Red color
-  }
-  pixels.show();
-
+  //LED 
+  led();
+  
   // Fetch Firebase data periodically
   if (isConnected && millis() - lastPasswordFetch >= fetchInterval) {
     lastPasswordFetch = millis();
@@ -195,6 +193,16 @@ void setuppixel(){
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void led(){
+  if (doorUnlocked) {
+    setColor(0, 150, 0);  // Green color
+  }
+  else {
+    setColor(150, 0, 0);  // Red color
+  }
+  pixels.show();
+}
 
 /// @brief Set the color of all NeoPixels
 void setColor(int r, int g, int b) {
@@ -267,6 +275,7 @@ void toggleDoorLock(){
 /// @brief Check the entered password (locally) and unlock/lock the door accordingly
 void checkPassword() {
   if (enteredPassword == mainPassword) {
+    CorrectPasswordSound(); // Play sound for correct password
     toggleDoorLock();
   }
   else {
@@ -276,10 +285,12 @@ void checkPassword() {
       if (enteredPassword == tempPass) {
         tempPasswordValid = true;
         toggleDoorLock();
+        CorrectPasswordSound(); // Play sound for correct password
         break;
       }
     }
     if (!tempPasswordValid) {
+      WrongPasswordSound(); // Play sound for wrong password
       status_message = "Access Denied.";
       Serial.println(status_message);
     }
@@ -294,6 +305,7 @@ void handleKepad(){
 
   char key = keypad.getKey(); // Check if a key is pressed
   if (key) {
+    KeyPressedSound();
     if (key == '#') {
       // Submit the entered password only if it's exactly passLength characters long
       if (enteredPassword.length() == passLength) {
@@ -306,6 +318,7 @@ void handleKepad(){
       }
     } else if (key == '*') {
       // Clear the entered password
+      resetPasswordSound(); // Play sound for password reset
       status_message = "Password entry cleared.";
       Serial.println(status_message);
       enteredPassword = "";
