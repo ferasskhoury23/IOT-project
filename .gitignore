@@ -1,0 +1,57 @@
+﻿# Flutter-specific
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.dart_tool/
+.packages
+generated_plugin_registrant.dart
+
+# iOS-specific
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Generated.xcconfig
+ios/Pods/
+ios/.symlinks/
+
+# Android-specific
+android/.gradle/
+android/app/build/
+android/key.properties
+
+# Web-specific
+web/.dart_tool/
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# macOS-specific
+.DS_Store
+
+# Miscellaneous
+*.log
+*.lock
+*.tmp
+*.swp
+
+# Sensitive files
+secrets.env
+firebase-debug.log
+
+# Cloud Functions (Node.js)
+functions/node_modules/
+functions/.firebase/
+functions/package-lock.json
+functions/.runtimeconfig.json
+
+# Exclude environment configuration but keep index.js
+functions/.env
+
+
+# Exclude seminar folder
+seminar/
+
+# Exclude some extra files
+UNITTESTS/esp-32-server/
+COMM UNITEST/POC/

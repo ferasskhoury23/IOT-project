@@ -15,8 +15,12 @@
 // ===========================
 // Enter your WiFi credentials
 // ===========================
-const char* ssid = "BeSpot9B8C_2.4";
-const char* password = "9C029B8C";
+
+
+//const char* ssid = "BeSpot9B8C_2.4";
+//const char* password = "9C029B8C";
+const char* ssid = "Ferass";
+const char* password = "fygu6354";
 
 
 void startCameraServer();

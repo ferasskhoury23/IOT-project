@@ -1,51 +1,37 @@
-/*********
-  Rui Santos
-  Complete project details at https://RandomNerdTutorials.com/esp32-hc-sr04-ultrasonic-arduino/
-  
-  Permission is hereby granted, free of charge, to any person obtaining a copy
-  of this software and associated documentation files.
-  
-  The above copyright notice and this permission notice shall be included in all
-  copies or substantial portions of the Software.
-*********/
-
-const int trigPin = 5;
-const int echoPin =18;
-
-//define sound speed in cm/uS
-#define SOUND_SPEED 0.034
-#define CM_TO_INCH 0.393701
-
-long duration;
-float distanceCm;
+const int lockPin = 26; // GPIO pin connected to the LED
+bool isLocked = true;
 
 
 void setup() {
-  Serial.begin(115200); // Starts the serial communication
-  pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
-  pinMode(echoPin, INPUT); // Sets the echoPin as an Input
+  Serial.begin(115200); // Initialize Serial Monitor for debugging
+  pinMode(lockPin, OUTPUT); // Set the pin as an output
+  lockDoor(); // Start with the door locked
 }
 
 void loop() {
-  // Clears the trigPin
-  digitalWrite(trigPin, LOW);
-  delayMicroseconds(2);
-  // Sets the trigPin on HIGH state for 10 micro seconds
-  digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-  
-  // Reads the echoPin, returns the sound wave travel time in microseconds
-  duration = pulseIn(echoPin, HIGH);
-  Serial.print(duration);
-  // Calculate the distance
-  distanceCm = (duration * SOUND_SPEED) / 2;
-  
+  // Simulate locking and unlocking with a delay (for testing)
+  delay(5000); // Wait 5 seconds
+  toggleLock();
+  delay(5000); // Wait 5 seconds
+  toggleLock();
+}
 
-  
-  // Prints the distance in the Serial Monitor
-  Serial.print("Distance (cm): ");
-  Serial.println(distanceCm);
-  
-  delay(1000);
+void lockDoor() {
+  digitalWrite(lockPin, HIGH); // Turn LED on
+  isLocked = true;
+  Serial.println("Door is LOCKED");
+}
+
+void unlockDoor() {
+  digitalWrite(lockPin, LOW); // Turn LED off
+  isLocked = false;
+  Serial.println("Door is UNLOCKED");
+}
+
+void toggleLock() {
+  if (isLocked) {
+    unlockDoor();
+  } else {
+    lockDoor();
+  }
 }

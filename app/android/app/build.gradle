@@ -1,0 +1,45 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace = "com.example.smart_doorbell"
+    compileSdk = flutter.compileSdkVersion // Ensure it's at least 31
+    ndkVersion = flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        // Unique Application ID, must match Firebase package name
+        applicationId = "com.example.smart_doorbell"
+        //minSdk = flutter.minSdkVersion // Ensure it's at least 21
+        minSdkVersion = 23
+        targetSdk = flutter.targetSdkVersion // Ensure it's at least 31
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+    }
+
+    buildTypes {
+        release {
+            // Add signing config for release builds later
+            signingConfig = signingConfigs.debug
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
+
+// Firebase plugin for Google services
+apply plugin: 'com.google.gms.google-services'
