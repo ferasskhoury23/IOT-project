@@ -125,14 +125,14 @@ void setup() {
 }
 
 void loop() {
-  // Check Wi-Fi connection
+  //check Wi-Fi connection
   bool isConnected = (WiFi.status() == WL_CONNECTED);
   displayed_message = isConnected ? displayed_message : "NO WIFI";
 
   //LED 
   led();
   
-  // Fetch Firebase data periodically
+  //fetch Firebase data periodically
   if (isConnected && millis() - lastPasswordFetch >= fetchInterval) {
     lastPasswordFetch = millis();
     fetchMainPassword();
