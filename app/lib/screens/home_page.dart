@@ -70,6 +70,21 @@ class _HomeState extends State<Home> {
     });
   }
 
+  void _clearLogs() {
+    _database.child("logs").remove().then((_) {
+      setState(() {
+        _logs.clear(); // Clear the logs locally
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Logs cleared successfully!")),
+      );
+    }).catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to clear logs: $error")),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -181,19 +196,33 @@ class _HomeState extends State<Home> {
             ),
           ),
 
-          // Logs Area
+          // Logs Area with Clear Button
           Expanded(
             flex: 3,
-            child: ListView.builder(
-              itemCount: _logs.length,
-              itemBuilder: (context, index) {
-                final log = _logs[index];
-                return ListTile(
-                  leading: const Icon(Icons.event),
-                  title: Text(log["description"]),
-                  subtitle: Text(log["timestamp"]),
-                );
-              },
+            child: Column(
+              children: [
+                // Clear Logs Button
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: ElevatedButton(
+                    onPressed: _clearLogs,
+                    child: const Text("Clear Logs"),
+                  ),
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: _logs.length,
+                    itemBuilder: (context, index) {
+                      final log = _logs[index];
+                      return ListTile(
+                        leading: const Icon(Icons.event),
+                        title: Text(log["description"]),
+                        subtitle: Text(log["timestamp"]),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
         ],

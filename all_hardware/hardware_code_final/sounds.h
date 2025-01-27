@@ -11,9 +11,9 @@
 //
 // vin -> 3.3V
 // GND -> GND
-// BCLK -> 26
-// LRCLK -> 25
-// DIN -> 22
+// BCLK -> 26 >>> 2
+// LRCLK -> 25 >>> 4
+// DIN -> 22 >>>>15
 //
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -25,6 +25,7 @@ void EmptyPasswordSound();
 void CorrectPasswordSound();
 void WrongPasswordSound();
 void resetPasswordSound();
+void DoorbellRingSound();
 
 
 // I2S setup function
@@ -44,9 +45,9 @@ void setupI2S() {
   };
 
   i2s_pin_config_t pin_config = {
-      .bck_io_num = 26,
-      .ws_io_num = 25,
-      .data_out_num = 22,
+      .bck_io_num = 2,
+      .ws_io_num = 4,
+      .data_out_num = 15,
       .data_in_num = I2S_PIN_NO_CHANGE
   };
 
@@ -160,5 +161,28 @@ void resetPasswordSound() {
       j2++;
     }
     delay(50);
+  }
+}
+
+
+void DoorbellRingSound() {
+  static float phase = 0;
+  size_t bytes_written;
+  int16_t samples[64];
+
+  // Generate a 2kHz sine wave for the doorbell
+  for (int i = 0; i < 64; i++) {
+    samples[i] = (int16_t)(32767 * sin(phase));
+    phase += 2 * PI * 2000 / SAMPLE_RATE; // 2kHz frequency
+    if (phase >= 2 * PI) {
+      phase -= 2 * PI;
+    }
+  }
+
+  // Play the sound for a short duration
+  int j = 0;
+  while (j < 300) { // Adjust the number of iterations for desired duration
+    i2s_write(I2S_NUM, samples, sizeof(samples), &bytes_written, portMAX_DELAY);
+    j++;
   }
 }

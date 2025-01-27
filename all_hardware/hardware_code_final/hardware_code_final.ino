@@ -82,7 +82,8 @@ String door_state = "Locked";   // Door state (Locked/Unlocked)
 String status_message = "";
 
 unsigned long lastPasswordFetch = 0;  // Timestamp for the last password fetch
-const unsigned long fetchInterval = 5000; // Fetch interval: 5 seconds
+const unsigned long fetchInterval = 3000; // Fetch interval: 5 seconds
+const unsigned long autoLockInterval = 10000; // auto lock the door after 10 seconds
 
 unsigned long unlockStartTime = 0;  // Time when the door was unlocked
 bool doorUnlocked = false;          // Tracks if the door is currently unlocked
@@ -231,24 +232,26 @@ void updateDisplay() {
 
 /// @brief Check if any of the buttons are pressed and update the notification accordingly
 void checkButtons() {
-  if (digitalRead(BUTTON1_PIN) == LOW) { // Button 1 pressed
-    status_message = "Button 1 pressed";
+  if (digitalRead(BUTTON1_PIN) == LOW) { // green button
+    status_message = "Doorbell ringing!";
     Serial.println(status_message);
+
+    DoorbellRingSound();
     updateNotification("The Door is ringing!");
     delay(200); // Debounce delay
     resetNotificationAfterDelay();
   }
 
-  if (digitalRead(BUTTON2_PIN) == LOW) { // Button 2 pressed
-    status_message = "Button 2 pressed";
+  if (digitalRead(BUTTON2_PIN) == LOW) { // Blue button
+    status_message = "Delivery Arrived Message Has been Sent To The Owner";
     Serial.println(status_message);
     updateNotification("Delivery on the Door");
     delay(200); // Debounce delay
     resetNotificationAfterDelay();
   }
 
-  if (digitalRead(BUTTON3_PIN) == LOW) { // Button 3 pressed
-    status_message = "Button 3 pressed";
+  if (digitalRead(BUTTON3_PIN) == LOW) { // white button
+    status_message = "ALERT!!!!";
     Serial.println(status_message);
     updateNotification("Security Alert!");
     delay(200); // Debounce delay
@@ -327,7 +330,7 @@ void handleKepad(){
       // Add the key to the password buffer
       enteredPassword += key;
       entered_keys += key;
-      status_message = "Key entered: " + String(key);
+      status_message = "Entering Password.";
       Serial.println(status_message);
 
       // Check if buffer length exceeds the limit
@@ -344,7 +347,7 @@ void handleKepad(){
 
 /// @brief auto locks the door after 10 seconds
 void autoLockDoor(){
-  if (doorUnlocked && millis() - unlockStartTime >= 10000) {
+  if (doorUnlocked && millis() - unlockStartTime >= autoLockInterval) {
     lockDoor();
     doorUnlocked = false;
   }
