@@ -13,10 +13,10 @@
  #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
 #endif
 
-#define BUTTON1_PIN 5   // Button 1 connected to D5 (GPIO5)
-#define BUTTON2_PIN 19  // Button 2 connected to D19 (GPIO19)
-#define BUTTON3_PIN 18  // Button 3 connected to D18 (GPIO18)
-#define PIN  32      // NeoPixel data pin
+#define BUTTON1_PIN 5   // Button Green connected to D5 (GPIO5)
+#define BUTTON2_PIN 18  // Button Blue connected to D19 (GPIO19)
+#define BUTTON3_PIN 19  // Button white connected to D18 (GPIO18)
+#define PIN  27      // NeoPixel data pin
 #define NUMPIXELS 4  // Number of NeoPixels
 
 // Wi-Fi credentials
@@ -63,8 +63,12 @@ char keys[ROWS][COLS] = {
   {'*', '0', '#', 'D'}
 };
 
-byte rowPins[ROWS] = {13, 27, 12, 14}; // Connect to the row pinouts of the keypad
-byte colPins[COLS] = {25, 26, 33, 32}; // Connect to the column pinouts of the keypad
+//byte rowPins[ROWS] = {13, 27, 12, 14}; // Connect to the row pinouts of the keypad
+//byte colPins[COLS] = {25, 26, 33, 32}; // Connect to the column pinouts of the keypad
+
+byte rowPins[ROWS] = {26, 25, 33, 32}; // Connect to the row pinouts of the keypad
+byte colPins[COLS] = {13, 12, 14, 27}; // Connect to the column pinouts of the keypad
+
 
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
@@ -559,6 +563,3 @@ void fetchTempPasswords() {
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-

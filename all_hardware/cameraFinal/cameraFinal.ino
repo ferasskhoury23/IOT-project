@@ -135,6 +135,6 @@ void loop() {
 
   // Return the frame buffer to be reused
   esp_camera_fb_return(fb);
-  delay(500);
+  //delay(500);
 
 }
