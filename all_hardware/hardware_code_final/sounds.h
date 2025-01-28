@@ -5,15 +5,15 @@
 // Constants
 #define SAMPLE_RATE 44100
 #define I2S_NUM I2S_NUM_0
-
+#define AMPLITUDE 5000
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // vin -> 3.3V
 // GND -> GND
-// BCLK -> 26 >>> 2
-// LRCLK -> 25 >>> 4
-// DIN -> 22 >>>>15
+// BCLK ->  2
+// LRCLK ->  4
+// DIN -> 15
 //
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -62,7 +62,7 @@ void KeyPressedSound() {
   int16_t samples[64];
 
   for (int i = 0; i < 64; i++) {
-    samples[i] = (int16_t)(32767 * sin(phase));
+    samples[i] = (int16_t)(AMPLITUDE * sin(phase)); // was 32767
     phase += 2 * PI * 5000 / SAMPLE_RATE;
     if (phase >= 2 * PI) phase -= 2 * PI;
   }
@@ -81,7 +81,7 @@ void EmptyPasswordSound() {
   int16_t samples[64];
 
   for (int i = 0; i < 64; i++) {
-    samples[i] = (int16_t)(10000000 * cos(phase));
+    samples[i] = (int16_t)(AMPLITUDE * cos(phase)); // was 10000000
     phase += 2 * PI * 5000 / SAMPLE_RATE;
     if (phase >= 2 * PI) phase -= 2 * PI;
   }
@@ -99,7 +99,7 @@ void CorrectPasswordSound() {
   int16_t samples[64];
 
   for (int i = 0; i < 64; i++) {
-    samples[i] = (int16_t)(32767 * sin(phase));
+    samples[i] = (int16_t)(AMPLITUDE * sin(phase)); // was 32767
     phase += 2 * PI * 5000 / SAMPLE_RATE;
     if (phase >= 2 * PI) phase -= 2 * PI;
   }
@@ -117,7 +117,7 @@ void WrongPasswordSound() {
   int16_t samples[64];
 
   for (int i = 0; i < 64; i++) {
-    samples[i] = (int16_t)(32767 * sin(phase));
+    samples[i] = (int16_t)(AMPLITUDE * sin(phase)); // was 32767
     phase += 2 * PI * 5000 / SAMPLE_RATE;
     if (phase >= 2 * PI) phase -= 2 * PI;
   }
@@ -138,11 +138,11 @@ void resetPasswordSound() {
   int16_t samples1[64], samples2[64];
 
   for (int i = 0; i < 64; i++) {
-    samples1[i] = (int16_t)(32767 * sin(phase1));
+    samples1[i] = (int16_t)(AMPLITUDE * sin(phase1));// was 32767
     phase1 += 2 * PI * 5000 / SAMPLE_RATE;
     if (phase1 >= 2 * PI) phase1 -= 2 * PI;
 
-    samples2[i] = (int16_t)(100000 * cos(phase2));
+    samples2[i] = (int16_t)(AMPLITUDE * cos(phase2)); // was 100000
     phase2 += 2 * PI * 5000 / SAMPLE_RATE;
     if (phase2 >= 2 * PI) phase2 -= 2 * PI;
   }
@@ -172,7 +172,7 @@ void DoorbellRingSound() {
 
   // Generate a 2kHz sine wave for the doorbell
   for (int i = 0; i < 64; i++) {
-    samples[i] = (int16_t)(32767 * sin(phase));
+    samples[i] = (int16_t)(AMPLITUDE * sin(phase)); // was 32767
     phase += 2 * PI * 2000 / SAMPLE_RATE; // 2kHz frequency
     if (phase >= 2 * PI) {
       phase -= 2 * PI;

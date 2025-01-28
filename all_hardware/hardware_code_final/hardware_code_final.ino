@@ -82,15 +82,15 @@ const int passLength = 6;     // Password length
 const int bufferLimit = 10;   // Maximum buffer length
 String displayed_message = "";  // Firebase message or NO WIFI (the message to display on the OLED)
 String entered_keys = "";       // Keys entered by the user
-String door_state = "Locked";   // Door state (Locked/Unlocked)
-String status_message = "";
+String door_state = "";   // Door state (Locked/Unlocked)
+String status_message = "Enter Password";
 
 unsigned long lastPasswordFetch = 0;  // Timestamp for the last password fetch
 const unsigned long fetchInterval = 3000; // Fetch interval: 5 seconds
 const unsigned long autoLockInterval = 10000; // auto lock the door after 10 seconds
 
 unsigned long unlockStartTime = 0;  // Time when the door was unlocked
-bool doorUnlocked = false;          // Tracks if the door is currently unlocked
+bool doorUnlocked;          // Tracks if the door is currently unlocked
 
 //////////////////////////////////////setup + loop///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void setup() {
@@ -122,6 +122,7 @@ void setup() {
   fetchTempPasswords();
   fetchLockState();
   fetch_message();
+  updateDisplay();
 }
 
 void loop() {
@@ -385,8 +386,8 @@ void unlockDoor() {
 
 /// @brief Lock the door and update the state in Firebase
 void lockDoor() {
-  Serial.println("Locking the door...");
-
+  //Serial.println("Locking the door...");
+  
   // Update local state and OLED display
   doorUnlocked = false;
   door_state = "Locked";
@@ -395,7 +396,7 @@ void lockDoor() {
   if (WiFi.status() == WL_CONNECTED) {
     bool success = Database.set<String>(client, "/lock_state", "locked");
     if (success) {
-      Serial.println("lock_state updated to locked in Firebase.");
+      //Serial.println("lock_state updated to locked in Firebase.");
     }
     else {
       Serial.print("Failed to update lock_state in Firebase: ");
@@ -412,7 +413,7 @@ void updateNotification(String notification) {
   if (WiFi.status() == WL_CONNECTED) {
     bool success = Database.set<String>(client, "/notification", notification);
     if (success) {
-      Serial.println("Notification updated successfully: " + notification);
+      //Serial.println("Notification updated successfully: " + notification);
     }
     else {
       Serial.print("Failed to update notification: ");
@@ -430,7 +431,7 @@ void resetNotificationAfterDelay() {
   if (WiFi.status() == WL_CONNECTED) {
     bool success = Database.set<String>(client, "/notification", "NONE");
     if (success) {
-      Serial.println("Notification reset to NONE successfully.");
+      //Serial.println("Notification reset to NONE successfully.");
     }
     else {
       Serial.print("Failed to reset notification: ");
@@ -444,7 +445,7 @@ void resetNotificationAfterDelay() {
 
 /// @brief Fetch the main password from Firebase
 void fetchMainPassword() {
-  Serial.println("Fetching main password from Firebase...");
+  //Serial.println("Fetching main password from Firebase...");
   if (WiFi.status() == WL_CONNECTED) {
     String newPassword = Database.get<String>(client, "/main_password");
     if (client.lastError().code() == 0) {
@@ -465,31 +466,59 @@ void fetchMainPassword() {
 
 /// @brief Fetch the lock state from Firebase
 void fetchLockState() {
-  Serial.println("Fetching lock state from Firebase...");
+  //Serial.println("Fetching lock state from Firebase...");
+
   if (WiFi.status() == WL_CONNECTED) {
     String lockState = Database.get<String>(client, "/lock_state");
-    if (client.lastError().code() == 0) {
-      if (lockState == "unlocked" && !doorUnlocked) {
-        Serial.println("Door is unlocked by external source.");
-        doorUnlocked = true;
-        door_state = "Unlocked";
-        unlockStartTime = millis(); // Start the unlock timer
+
+    if (client.lastError().code() == 0) {  // Fetch successful
+      Serial.print("Fetched lock state: ");
+      Serial.println(lockState);
+
+      // Ensure doorUnlocked is properly initialized
+      if (lockState == "unlocked") {
+        if (!doorUnlocked) { // Prevent unnecessary updates
+          Serial.println("Door was unlocked at startup.");
+          doorUnlocked = true;
+          door_state = "Unlocked";
+
+          // **Start auto-lock timer if unlocked**
+          unlockStartTime = millis();
+        }
       }
-      else if (lockState == "locked" && doorUnlocked) {
-        Serial.println("Door is locked by external source.");
+      else if (lockState == "locked") {
+        if (doorUnlocked) { // Prevent unnecessary updates
+          Serial.println("Door was locked at startup.");
+          doorUnlocked = false;
+          door_state = "Locked";
+        }
+      }
+      else {
+        Serial.println("Unknown lock state received! Defaulting to Locked.");
         doorUnlocked = false;
-        door_state = "Locked";
+        door_state = "Locked";  // Fallback if Firebase sends an unexpected value
       }
     }
     else {
       Serial.print("Failed to fetch lock state: ");
       Serial.println(client.lastError().message());
+
+      // Handle Firebase error: Default to "Locked"
+      Serial.println("Defaulting to Locked state.");
+      doorUnlocked = false;
+      door_state = "Locked";
     }
   }
   else {
     Serial.println("Wi-Fi not connected. Skipping lock state fetch.");
+    
+    // Handle no Wi-Fi case: Default to "Locked"
+    Serial.println("Defaulting to Locked state.");
+    doorUnlocked = false;
+    door_state = "Locked";
   }
 }
+
 
 
 /// @brief Fetch the message to be displayed on the OLED screen
@@ -498,8 +527,8 @@ void fetch_message() {
     String message = Database.get<String>(client, "/display_message");
     if (client.lastError().code() == 0) {
       displayed_message = message;
-      Serial.print("Display message: ");
-      Serial.println(displayed_message);
+      //Serial.print("Display message: ");
+      //Serial.println(displayed_message);
     }
     else {
       Serial.print("Failed to read display_message: ");
@@ -515,7 +544,7 @@ void fetch_message() {
 
 /// @brief Fetch the temporary passwords from Firebase
 void fetchTempPasswords() {
-  Serial.println("Fetching temporary passwords from Firebase...");
+  //Serial.println("Fetching temporary passwords from Firebase...");
   if (WiFi.status() == WL_CONNECTED) {
     String rawTempPasswords = Database.get<String>(client, "/temp_password");
     if (client.lastError().code() == 0 && rawTempPasswords.length() > 0) {
@@ -547,7 +576,7 @@ void fetchTempPasswords() {
         if (tempPasswordObj.containsKey("password")) {
           String tempPassword = tempPasswordObj["password"].as<String>();
           tempPasswords.push_back(tempPassword);
-          Serial.println("Temporary password added: " + tempPassword);
+          //Serial.println("Temporary password added: " + tempPassword);
         }
       }
 
