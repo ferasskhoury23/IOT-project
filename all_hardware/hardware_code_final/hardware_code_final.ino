@@ -20,6 +20,10 @@
 #define BUTTON3_PIN 19  // Button white connected to D18 (GPIO18)
 #define PIN  27      // NeoPixel data pin
 #define NUMPIXELS 4  // Number of NeoPixels
+#define TRIG_PIN 23 // used for motion sensor
+#define ECHO_PIN 34 // used for motion sensor
+#define SOUND_SPEED 0.034
+#define CM_TO_INCH 0.393701
 
 // I2C OLED display setup (SH1106G, 128x64 resolution)
 #define SCREEN_WIDTH 128
@@ -83,6 +87,16 @@ const unsigned long autoLockInterval = 10000; // auto lock the door after 10 sec
 unsigned long unlockStartTime = 0;  // Time when the door was unlocked
 bool doorUnlocked;          // Tracks if the door is currently unlocked
 
+long motion_duration;
+float motion_distanceCm;
+unsigned long motion_startTimer = 0;
+bool motion_timerActive = false;
+const float motionDetectionRange = 20.0; // Distance threshold in cm
+const unsigned long motionDetectionTime = 10000; // Time threshold in ms (10 seconds)
+
+
+
+
 //////////////////////////////////////setup + loop///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void setup() {
   Serial.begin(115200);
@@ -98,6 +112,10 @@ void setup() {
   pinMode(BUTTON2_PIN, INPUT_PULLUP); // Button 2 with internal pull-up
   pinMode(BUTTON3_PIN, INPUT_PULLUP); // Button 3 with internal pull-up
 
+
+  //////////////////////////////////////////////////////
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
   ////////////important initializations/////////////////
   // Connect to Wi-Fi
   connect_wifi();
@@ -114,6 +132,7 @@ void setup() {
   fetchLockState();
   fetch_message();
   updateDisplay();
+  updateNotification("NONE");
 }
 
 void loop() {
@@ -141,6 +160,9 @@ void loop() {
   
   //check Buttons
   checkButtons();
+
+  //check motion sensor
+  checkMotionSensor();
 
   //update OLED Display
   updateDisplay();
@@ -231,7 +253,7 @@ void checkButtons() {
   if (digitalRead(BUTTON1_PIN) == LOW) { // green button
     status_message = "Doorbell ringing!";
     Serial.println(status_message);
-
+    resetMotionTimer();
     DoorbellRingSound();
     updateNotification("The Door is ringing!");
     delay(200); // Debounce delay
@@ -241,6 +263,7 @@ void checkButtons() {
   if (digitalRead(BUTTON2_PIN) == LOW) { // Blue button
     status_message = "Sending Delivery Notification ...";
     Serial.println(status_message);
+    resetMotionTimer();
     updateNotification("Delivery on the Door");
     delay(200); // Debounce delay
     resetNotificationAfterDelay();
@@ -249,6 +272,7 @@ void checkButtons() {
   if (digitalRead(BUTTON3_PIN) == LOW) { // white button
     status_message = "ALERT!!!!";
     Serial.println(status_message);
+    resetMotionTimer();
     updateNotification("Security Alert!");
     delay(200); // Debounce delay
     resetNotificationAfterDelay();
@@ -304,6 +328,7 @@ void handleKepad(){
 
   char key = keypad.getKey(); // Check if a key is pressed
   if (key) {
+    resetMotionTimer();
     KeyPressedSound();
     if (key == '#') {
       // Submit the entered password only if it's exactly passLength characters long
@@ -584,3 +609,46 @@ void fetchTempPasswords() {
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Reset the motion detection timer manually
+void resetMotionTimer() {
+  motion_timerActive = false;  // Stop motion detection timer
+  motion_startTimer = 0;       // Reset start time
+  Serial.println("Motion detection timer reset.");
+}
+
+
+void checkMotionSensor() {
+  // Trigger the ultrasonic sensor
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+  
+  // Read the echo signal
+  motion_duration = pulseIn(ECHO_PIN, HIGH);
+  motion_distanceCm = (motion_duration * SOUND_SPEED) / 2; // Convert to cm
+
+  Serial.print("Distance (cm): ");
+  Serial.println(motion_distanceCm);
+
+  if (motion_distanceCm > 0 && motion_distanceCm < motionDetectionRange) {
+    if (!motion_timerActive) {
+      motion_startTimer = millis(); // Start timing when object is detected
+      motion_timerActive = true;
+    }
+  } else {
+    motion_timerActive = false; // Reset timer if the object moves away
+  }
+
+  // If object remains in range for more than 10 seconds, trigger notification
+  if (motion_timerActive && (millis() - motion_startTimer >= motionDetectionTime)) {
+    Serial.println("Object detected for 10+ seconds. Sending alert.");
+    updateNotification("Motion Detected!");
+    resetNotificationAfterDelay();
+    motion_timerActive = false; // Reset timer after action
+  }
+}
+
+

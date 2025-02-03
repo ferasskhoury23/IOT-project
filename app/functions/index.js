@@ -32,6 +32,10 @@ exports.sendNotification = functions
           title = "Doorbell Alert!";
           body = "Someone is at the door.";
           break;
+        case "Motion Detected!":
+          title = "Motion Detected!";
+          body = "Motion was detected near the door. Look at the camera.";
+          break;
         default:
           console.log("Unknown notification type:", newValue);
           return null; // Exit if the notification type is unknown
