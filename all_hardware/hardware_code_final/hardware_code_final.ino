@@ -12,6 +12,8 @@
 #ifdef __AVR__
  #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
 #endif
+#include "secrets.h"
+
 
 #define BUTTON1_PIN 5   // Button Green connected to D5 (GPIO5)
 #define BUTTON2_PIN 18  // Button Blue connected to D19 (GPIO19)
@@ -19,19 +21,12 @@
 #define PIN  27      // NeoPixel data pin
 #define NUMPIXELS 4  // Number of NeoPixels
 
-// Wi-Fi credentials
-#define WIFI_SSID "ICST"
-#define WIFI_PASSWORD "arduino123"
-
-// Firebase Realtime Database URL
-#define DATABASE_URL "https://smart-doorbell-2025-default-rtdb.europe-west1.firebasedatabase.app"
-
 // I2C OLED display setup (SH1106G, 128x64 resolution)
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_RESET -1  // Reset pin (-1 if not used)
 #define I2C_ADDRESS 0x3C
-//#define senderID 110180556964
+
 
 //////////////////////////////////objects//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // NeoPixel strip object
@@ -63,12 +58,8 @@ char keys[ROWS][COLS] = {
   {'*', '0', '#', 'D'}
 };
 
-//byte rowPins[ROWS] = {13, 27, 12, 14}; // Connect to the row pinouts of the keypad
-//byte colPins[COLS] = {25, 26, 33, 32}; // Connect to the column pinouts of the keypad
-
 byte rowPins[ROWS] = {26, 25, 33, 32}; // Connect to the row pinouts of the keypad
 byte colPins[COLS] = {13, 12, 14, 27}; // Connect to the column pinouts of the keypad
-
 
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
@@ -248,7 +239,7 @@ void checkButtons() {
   }
 
   if (digitalRead(BUTTON2_PIN) == LOW) { // Blue button
-    status_message = "Delivery Arrived Message Has been Sent To The Owner";
+    status_message = "Sending Delivery Notification ...";
     Serial.println(status_message);
     updateNotification("Delivery on the Door");
     delay(200); // Debounce delay
@@ -270,12 +261,14 @@ void toggleDoorLock(){
       lockDoor(); // Lock the door if it is currently unlocked
       status_message = "Door locked.";
       doorUnlocked = false;
+      WrongPasswordSound();
     }
     else {
       status_message = "Access granted.";
       unlockDoor(); // Unlock the door if it is currently locked
       doorUnlocked = true;
       unlockStartTime = millis(); // Record the unlock time
+      CorrectPasswordSound();
     }
 }
 
@@ -283,7 +276,6 @@ void toggleDoorLock(){
 /// @brief Check the entered password (locally) and unlock/lock the door accordingly
 void checkPassword() {
   if (enteredPassword == mainPassword) {
-    CorrectPasswordSound(); // Play sound for correct password
     toggleDoorLock();
   }
   else {
@@ -293,7 +285,6 @@ void checkPassword() {
       if (enteredPassword == tempPass) {
         tempPasswordValid = true;
         toggleDoorLock();
-        CorrectPasswordSound(); // Play sound for correct password
         break;
       }
     }
@@ -351,6 +342,7 @@ void handleKepad(){
 }
 
 /// @brief auto locks the door after 10 seconds
+//millis() Returns the number of milliseconds since the device began running the current program.
 void autoLockDoor(){
   if (doorUnlocked && millis() - unlockStartTime >= autoLockInterval) {
     lockDoor();
